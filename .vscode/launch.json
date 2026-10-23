@@ -1,0 +1,13 @@
+
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "Main",
+            "vmArgs": "-Djava.library.path=\"${workspaceFolder}/lwjgl-2.9.2/native/windows\""
+        }
+    ]
+}

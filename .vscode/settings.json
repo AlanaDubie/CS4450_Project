@@ -1,0 +1,7 @@
+
+{
+    "java.project.referencedLibraries": [
+        "lwjgl-2.9.2/jar/lwjgl.jar",
+        "lwjgl-2.9.2/jar/lwjgl_util.jar"
+    ]
+}
