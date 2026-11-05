@@ -1,3 +1,17 @@
+/***************************************************************
+* file: FPCameraController.java
+* author: Alana, Nirwisha, Aidan
+* class: CS 4450
+*
+* assignment: Final Program - Checkpoint 2
+* date last modified: 11/5/2026
+*
+* purpose: This class is the first person camera. The mouse turns
+* the view, W/A/S/D move around, Space moves up, Left Shift moves
+* down, and Escape quits. It also runs the main render loop.
+*
+****************************************************************/
+
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
