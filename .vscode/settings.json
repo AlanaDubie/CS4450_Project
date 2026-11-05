@@ -3,6 +3,5 @@
         "lwjgl-2.9.2/jar/lwjgl.jar",
         "lwjgl-2.9.2/jar/lwjgl_util.jar",
         "lwjgl-2.9.2/jar/slick-util.jar"
-
     ]
 }

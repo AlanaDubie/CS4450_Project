@@ -1,3 +1,17 @@
+/***************************************************************
+* file: Chunk.java
+* author: Alana, Nirwisha, Aidan
+* class: CS 4450
+*
+* assignment: Final Program - Checkpoint 2
+* date last modified: 11/5/2026
+*
+* purpose: This class holds a 30x30x30 chunk of blocks and draws
+* it with three vertex buffer objects (positions, colors, and
+* texture coordinates). Textures come from the terrain.png atlas,
+* which is a 16x16 grid of tiles.
+*
+****************************************************************/
 import java.nio.FloatBuffer;
 import java.util.Random;
 import org.lwjgl.BufferUtils;
@@ -23,6 +37,9 @@ public class Chunk {
     private int StartX, StartY, StartZ;
     private Random r;
 
+    // method: render
+    // purpose: this method binds the buffers and texture, then draws
+    // the whole chunk with one draw call
     public void render() {
         glPushMatrix();
         glBindBuffer(GL_ARRAY_BUFFER, VBOVertexHandle);
@@ -38,6 +55,9 @@ public class Chunk {
         glPopMatrix();
     }
 
+    // method: rebuildMesh
+    // purpose: this method fills the position, color, and texture
+    // buffers for every block and uploads them to the graphics card
     public void rebuildMesh(
             float startX, float startY, float startZ) {
         VBOColorHandle = glGenBuffers();
@@ -99,6 +119,8 @@ public class Chunk {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
+    // method: createCubeVertexCol
+    // purpose: this method repeats one color for all 24 vertices of a cube
     private float[] createCubeVertexCol(float[] CubeColorArray) {
         float[] cubeColors = new float[CubeColorArray.length * 4 * 6];
         for (int i = 0; i < cubeColors.length; i++) {
@@ -108,6 +130,9 @@ public class Chunk {
         return cubeColors;
     }
 
+    // method: createCube
+    // purpose: this method returns the 24 vertex positions of a cube in
+    // this order: top, bottom, front, back, left, right
     public static float[] createCube(float x, float y,
             float z) {
         int offset = CUBE_LENGTH / 2;
@@ -144,12 +169,17 @@ public class Chunk {
             x + offset, y - offset, z};
     }
 
-    // White, so the color array does not tint the texture
+    // method: getCubeColor
+    // purpose: this method returns white so the color array does not
+    // tint the texture
     private float[] getCubeColor(Block block) {
         return new float[]{1, 1, 1};
     }
 
-    // UVs for one face. "start" picks which corner the first vertex uses.
+    // method: quadUV
+    // purpose: this method returns the u, v coordinates for one face of
+    // the atlas tile at (col, row); "start" picks which corner the first
+    // vertex uses
     private static float[] quadUV(int col, int row, int start) {
         float u0 = col * TILE;
         float v0 = row * TILE;
@@ -167,7 +197,10 @@ public class Chunk {
         return uv;
     }
 
-    // Same face order as createCube: top, bottom, front, back, left, right
+    // method: createTexCube
+    // purpose: this method returns the 48 texture coordinates for a cube
+    // in the same face order as createCube, using the tiles for the
+    // block's type
     public static float[] createTexCube(Block block) {
         int[] top, side, bottom; // each is {column, row} in the atlas
 
@@ -204,6 +237,9 @@ public class Chunk {
         return uv;
     }
 
+    // method: Chunk
+    // purpose: this constructor loads the texture atlas, fills the chunk
+    // with blocks, and builds the mesh
     public Chunk(int startX, int startY, int startZ) {
         try {
             // GL_NEAREST keeps the pixels sharp and stops tiles blurring together

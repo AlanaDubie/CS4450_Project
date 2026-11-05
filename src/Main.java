@@ -1,3 +1,15 @@
+/***************************************************************
+* file: Main.java
+* author: Alana, Nirwisha, Aidan
+* class: CS 4450
+*
+* assignment: Final Program - Checkpoint 2
+* date last modified: 11/5/2026
+*
+* purpose: This class creates the 640x480 window, sets up OpenGL
+* (depth test, textures, perspective), and starts the camera loop.
+*
+****************************************************************/
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import static org.lwjgl.opengl.GL11.*;
@@ -8,13 +20,16 @@ public class Main {
     private static final int WIDTH = 640;
     private static final int HEIGHT = 480;
 
-    private FPCameraController fp = new FPCameraController(0f, 0f, 0f);
-
+    // start centered in front of the chunk, looking straight at it
+    private FPCameraController fp = new FPCameraController(-29f, -53f, -98f);
     // Scene manager to handle rendering of objects in the scene
     private Scene scene; 
 
     private DisplayMode displayMode;
 
+    // method: start
+    // purpose: this method sets up the window and OpenGL, creates the
+    // scene, and runs the camera loop
     public void start() {
         try {
             createWindow();
@@ -27,6 +42,9 @@ public class Main {
         }
     }
 
+    // method: createWindow
+    // purpose: this method finds a 640x480 32-bit display mode and
+    // creates the window
     private void createWindow() throws Exception {
         Display.setFullscreen(false);
 
@@ -51,6 +69,9 @@ public class Main {
         Display.create();
     }
 
+    // method: initGL
+    // purpose: this method turns on depth testing, textures, and the
+    // vertex/color/texture arrays, then sets up the perspective
     private void initGL() {
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
@@ -76,6 +97,8 @@ public class Main {
         glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
     }
 
+    // method: main
+    // purpose: this method is the program entry point
     public static void main(String[] args) {
         Main basic = new Main();
         basic.start();
