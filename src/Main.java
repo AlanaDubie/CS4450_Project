@@ -11,7 +11,7 @@ public class Main {
     private FPCameraController fp = new FPCameraController(0f, 0f, 0f);
 
     // Scene manager to handle rendering of objects in the scene
-    private Scene scene = new Scene();
+    private Scene scene; 
 
     private DisplayMode displayMode;
 
@@ -19,6 +19,7 @@ public class Main {
         try {
             createWindow();
             initGL();
+            scene = new Scene();
 
             fp.gameLoop(scene);
         } catch (Exception e) {
@@ -54,6 +55,8 @@ public class Main {
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
         glEnable(GL_DEPTH_TEST);
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_COLOR_ARRAY);
 
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
