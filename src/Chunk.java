@@ -6,10 +6,10 @@
 * assignment: Final Program - Checkpoint 2
 * date last modified: 11/5/2026
 *
-* purpose: This class holds a 30x30x30 chunk of blocks and draws
-* it with three vertex buffer objects (positions, colors, and
-* texture coordinates). Textures come from the terrain.png atlas,
-* which is a 16x16 grid of tiles.
+* purpose: This class generates terrain within a 30x30x30 chunk
+* using Simplex Noise; uses three vertex buffer objects 
+* (positions, colors, and texture coordinate); Textures come 
+* from the terrain.png atlas, which is a 16x16 grid of tiles.
 *
 ****************************************************************/
 import java.nio.FloatBuffer;
@@ -36,6 +36,10 @@ public class Chunk {
     private Texture texture;
     private int StartX, StartY, StartZ;
     private Random r;
+    private int maxFeature = 40;
+    private float presistence = 0.4f;
+    private int seed;
+    private int vertexCount = 0;
 
     // method: render
     // purpose: this method binds the buffers and texture, then draws
@@ -49,20 +53,20 @@ public class Chunk {
         glBindBuffer(GL_ARRAY_BUFFER, VBOTextureHandle);
         glBindTexture(GL_TEXTURE_2D, texture.getTextureID());
         glTexCoordPointer(2, GL_FLOAT, 0, 0L);
-        glDrawArrays(GL_QUADS, 0,
-                CHUNK_SIZE * CHUNK_SIZE
-                * CHUNK_SIZE * 24);
+        glDrawArrays(GL_QUADS, 0, vertexCount);
         glPopMatrix();
     }
 
     // method: rebuildMesh
     // purpose: this method fills the position, color, and texture
     // buffers for every block and uploads them to the graphics card
-    public void rebuildMesh(
-            float startX, float startY, float startZ) {
+    public void rebuildMesh(float startX, float startY, float startZ) {
         VBOColorHandle = glGenBuffers();
         VBOVertexHandle = glGenBuffers();
         VBOTextureHandle = glGenBuffers();
+        
+        // creating simplex noise object
+        SimplexNoise noise = new SimplexNoise(maxFeature, presistence, seed);
 
         FloatBuffer VertexPositionData
                 = BufferUtils.createFloatBuffer(
@@ -78,9 +82,24 @@ public class Chunk {
                         (CHUNK_SIZE * CHUNK_SIZE
                         * CHUNK_SIZE) * 6 * 8);
 
-        for (float x = 0; x < CHUNK_SIZE; x += 1) {
-            for (float z = 0; z < CHUNK_SIZE; z += 1) {
-                for (float y = 0; y < CHUNK_SIZE; y++) {
+        for (int x = 0; x < CHUNK_SIZE; x++) {
+            for (int z = 0; z < CHUNK_SIZE; z++) {
+                
+                // noise coords (added code)
+                int i = StartX + x;
+                int k = StartZ + z;
+                
+                double noiseValue = noise.getNoise(i, 0, k);
+                
+                //max height
+                int maxHeight = (int)(15 + noiseValue * 8);
+                maxHeight = Math.max(0, Math.min(CHUNK_SIZE - 1, maxHeight));
+                
+                //generate blocks up to max height
+                for (int y = 0; y <= maxHeight; y++) {
+                    if (Blocks[x][y][z] == null) {
+                    continue;
+                    }
                     VertexPositionData.put(
                             createCube((float) (startX + x
                                     * CUBE_LENGTH),
@@ -99,9 +118,12 @@ public class Chunk {
                                     Blocks[(int) x]
                                     [(int) y]
                                     [(int) z]));
+                    
+                    vertexCount += 24; // 6 faces * 4 vertices
                 }
             }
         }
+        
         VertexColorData.flip();
         VertexPositionData.flip();
         VertexTextureData.flip();
@@ -117,6 +139,7 @@ public class Chunk {
         glBindBuffer(GL_ARRAY_BUFFER, VBOTextureHandle);
         glBufferData(GL_ARRAY_BUFFER, VertexTextureData, GL_STATIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
+        
     }
 
     // method: createCubeVertexCol
@@ -240,6 +263,57 @@ public class Chunk {
     // method: Chunk
     // purpose: this constructor loads the texture atlas, fills the chunk
     // with blocks, and builds the mesh
+  /*  public Chunk(int startX, int startY, int startZ) {
+        try {
+            // GL_NEAREST keeps the pixels sharp and stops tiles blurring together
+            texture = TextureLoader.getTexture("PNG",
+                    ResourceLoader.getResourceAsStream("terrain.png"), GL_NEAREST);
+        } catch (Exception e) {
+            System.out.println("Could not load terrain.png");
+            e.printStackTrace();
+        }
+        r = new Random();
+        Blocks = new Block[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
+            seed = new Random().nextInt();
+        SimplexNoise noise = new SimplexNoise(maxFeature, presistence, seed);
+            for (int x = 0; x < CHUNK_SIZE; x++) {
+        for (int z = 0; z < CHUNK_SIZE; z++) {
+            double noiseValue = noise.getNoise(startX + x, 0, startZ + z);
+            int terrainHeight = (int)(15 + noiseValue * 8);
+            terrainHeight = Math.max(0,
+                    Math.min(CHUNK_SIZE - 1, terrainHeight));
+
+            for (int y = 0; y < CHUNK_SIZE; y++) {
+
+                if (y == 0) {
+                    // Bedrock
+                    Blocks[x][y][z] =
+                            new Block(Block.BlockType.values()[5]);
+
+                } else if (y == terrainHeight) {
+                    // Grass on top
+                    Blocks[x][y][z] =
+                            new Block(Block.BlockType.values()[r.nextInt(3)]);
+
+                } else if (y < terrainHeight) {
+                    // Dirt and stone underneath
+                    int type = (y > terrainHeight - 4) ? 3 : 4;
+
+                    Blocks[x][y][z] =
+                            new Block(Block.BlockType.values()[type]);
+
+                } else {
+                    // Empty space above terrain
+                    Blocks[x][y][z] = null;
+                }
+            }
+        }
+    }
+        StartX = startX;
+        StartY = startY;
+        StartZ = startZ;
+        rebuildMesh(startX, startY, startZ);
+    }*/
     public Chunk(int startX, int startY, int startZ) {
         try {
             // GL_NEAREST keeps the pixels sharp and stops tiles blurring together
@@ -252,13 +326,30 @@ public class Chunk {
 
         r = new Random();
         Blocks = new Block[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
+        seed = new Random().nextInt();
+        SimplexNoise noise = new SimplexNoise(maxFeature, presistence, seed);
         for (int x = 0; x < CHUNK_SIZE; x++) {
             for (int y = 0; y < CHUNK_SIZE; y++) {
                 for (int z = 0; z < CHUNK_SIZE; z++) {
-                    // TEMPORARY: random type so all 6 textures show up.
-                    // Replace with noise terrain and layering later.
-                    Blocks[x][y][z] = new Block(
-                            Block.BlockType.values()[r.nextInt(6)]);
+                    double noiseValue = noise.getNoise(startX + x, 0, startZ + z);
+                    int terrainHeight = (int)(15 + noiseValue * 8);
+                    terrainHeight = Math.max(0, Math.min(CHUNK_SIZE - 1, terrainHeight));
+                    if (y == 0)
+                    {
+                        Blocks[x][y][z] = new Block(Block.BlockType.values()[5]);
+                    }
+                    if (y == terrainHeight)
+                    {
+                        Blocks[x][y][z] = new Block(Block.BlockType.values()[r.nextInt(3)]);
+                    }
+                    if (y > terrainHeight/2 && y != terrainHeight)
+                    {
+                        Blocks[x][y][z] = new Block(Block.BlockType.values()[r.nextInt(2)+3]);
+                    }
+                    if (y <= terrainHeight/2 && y != 0)
+                    {
+                        Blocks[x][y][z] = new Block(Block.BlockType.values()[4]);
+                    }
                 }
             }
         }
