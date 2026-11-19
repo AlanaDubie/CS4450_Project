@@ -10,6 +10,7 @@
 * using Simplex Noise; uses three vertex buffer objects 
 * (positions, colors, and texture coordinate); Textures come 
 * from the terrain.png atlas, which is a 16x16 grid of tiles.
+* A fourth vertex buffer object holds the normals the light needs.
 *
 ****************************************************************/
 import java.nio.FloatBuffer;
@@ -33,6 +34,7 @@ public class Chunk {
     private int VBOVertexHandle;
     private int VBOColorHandle;
     private int VBOTextureHandle;
+    private int VBONormalHandle;
     private Texture texture;
     private int StartX, StartY, StartZ;
     private Random r;
@@ -53,6 +55,8 @@ public class Chunk {
         glBindBuffer(GL_ARRAY_BUFFER, VBOTextureHandle);
         glBindTexture(GL_TEXTURE_2D, texture.getTextureID());
         glTexCoordPointer(2, GL_FLOAT, 0, 0L);
+        glBindBuffer(GL_ARRAY_BUFFER, VBONormalHandle);
+        glNormalPointer(GL_FLOAT, 0, 0L);
         glDrawArrays(GL_QUADS, 0, vertexCount);
         glPopMatrix();
     }
@@ -64,6 +68,8 @@ public class Chunk {
         VBOColorHandle = glGenBuffers();
         VBOVertexHandle = glGenBuffers();
         VBOTextureHandle = glGenBuffers();
+        VBONormalHandle = glGenBuffers();
+
         
         // creating simplex noise object
         SimplexNoise noise = new SimplexNoise(maxFeature, presistence, seed);
@@ -81,6 +87,11 @@ public class Chunk {
                 = BufferUtils.createFloatBuffer(
                         (CHUNK_SIZE * CHUNK_SIZE
                         * CHUNK_SIZE) * 6 * 8);
+        // 6 faces * 4 vertices * 3 floats (x, y, z) per cube
+        FloatBuffer VertexNormalData
+                = BufferUtils.createFloatBuffer(
+                        (CHUNK_SIZE * CHUNK_SIZE
+                        * CHUNK_SIZE) * 6 * 12);
 
         for (int x = 0; x < CHUNK_SIZE; x++) {
             for (int z = 0; z < CHUNK_SIZE; z++) {
@@ -118,6 +129,7 @@ public class Chunk {
                                     Blocks[(int) x]
                                     [(int) y]
                                     [(int) z]));
+                    VertexNormalData.put(createCubeNormals());
                     
                     vertexCount += 24; // 6 faces * 4 vertices
                 }
@@ -127,6 +139,7 @@ public class Chunk {
         VertexColorData.flip();
         VertexPositionData.flip();
         VertexTextureData.flip();
+        VertexNormalData.flip();
 
         glBindBuffer(GL_ARRAY_BUFFER, VBOVertexHandle);
         glBufferData(GL_ARRAY_BUFFER, VertexPositionData, GL_STATIC_DRAW);
@@ -139,7 +152,31 @@ public class Chunk {
         glBindBuffer(GL_ARRAY_BUFFER, VBOTextureHandle);
         glBufferData(GL_ARRAY_BUFFER, VertexTextureData, GL_STATIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        glBindBuffer(GL_ARRAY_BUFFER, VBONormalHandle);
+        glBufferData(GL_ARRAY_BUFFER, VertexNormalData, GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
         
+    }
+
+    // method: createCubeNormals
+    // purpose: this method returns the 72 normal values (24 vertices * 3) of a
+    // cube in the same face order as createCube: top, bottom, front, back,
+    // left, right. The light uses these to decide how bright each face is
+    private static float[] createCubeNormals() {
+        return new float[]{
+            // TOP QUAD
+            0, 1, 0,  0, 1, 0,  0, 1, 0,  0, 1, 0,
+            // BOTTOM QUAD
+            0, -1, 0,  0, -1, 0,  0, -1, 0,  0, -1, 0,
+            // FRONT QUAD
+            0, 0, -1,  0, 0, -1,  0, 0, -1,  0, 0, -1,
+            // BACK QUAD
+            0, 0, 1,  0, 0, 1,  0, 0, 1,  0, 0, 1,
+            // LEFT QUAD
+            -1, 0, 0,  -1, 0, 0,  -1, 0, 0,  -1, 0, 0,
+            // RIGHT QUAD
+            1, 0, 0,  1, 0, 0,  1, 0, 0,  1, 0, 0};
     }
 
     // method: createCubeVertexCol

@@ -3,11 +3,12 @@
 * author: Alana, Nirwisha, Aidan
 * class: CS 4450
 *
-* assignment: Final Program - Checkpoint 2
+* assignment: Final Program - Checkpoint 3
 * date last modified: 11/5/2026
 *
 * purpose: This class creates the 640x480 window, sets up OpenGL
-* (depth test, textures, perspective), and starts the camera loop.
+* (depth test, textures, perspective), and starts the camera loop. 
+* It also creates the light and turns on lighting.
 *
 ****************************************************************/
 import org.lwjgl.opengl.Display;
@@ -25,6 +26,9 @@ public class Main {
     // Scene manager to handle rendering of objects in the scene
     private Scene scene; 
 
+    // Light source for the world (see Light.java)
+    private Light light;
+
     private DisplayMode displayMode;
 
     // method: start
@@ -33,10 +37,11 @@ public class Main {
     public void start() {
         try {
             createWindow();
+            light = new Light();
             initGL();
             scene = new Scene();
 
-            fp.gameLoop(scene);
+            fp.gameLoop(scene, light);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -80,7 +85,7 @@ public class Main {
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_COLOR_ARRAY);
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-
+        glEnableClientState(GL_NORMAL_ARRAY);
 
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
@@ -95,6 +100,8 @@ public class Main {
         glMatrixMode(GL_MODELVIEW);
 
         glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+        // set up the light 
+        light.init();
     }
 
     // method: main

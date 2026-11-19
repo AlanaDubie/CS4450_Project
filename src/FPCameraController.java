@@ -3,7 +3,7 @@
 * author: Alana, Nirwisha, Aidan
 * class: CS 4450
 *
-* assignment: Final Program - Checkpoint 2
+* assignment: Final Program  
 * date last modified: 11/5/2026
 *
 * purpose: This class is the first person camera. The mouse turns
@@ -122,7 +122,7 @@ public class FPCameraController {
     }
 
     // Main camera loop
-    public void gameLoop(Scene scene) {
+    public void gameLoop(Scene scene, Light light) {
 
         float dx = 0.0f;
         float dy = 0.0f;
@@ -188,6 +188,10 @@ public class FPCameraController {
 
             // Apply the camera before drawing
             this.lookThrough();
+
+            // Place the light after the camera transform so it stays
+            // fixed in the world while the camera moves
+            light.apply();
 
             // Clear the color and depth buffers
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
